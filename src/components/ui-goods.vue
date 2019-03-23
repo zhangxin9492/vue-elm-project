@@ -3,7 +3,7 @@
         <div class="meau" ref="meauScroll">
             <ul>
                 <li class="border-1px" 
-                    :class="{'active':index==currnetIndex}" 
+                    :class="{'active':index==currentIndex}" 
                     v-for="(item,index) in goodsList" 
                     @click="chooseGoods(index,$event)">{{item.name}}</li>
             </ul>
@@ -45,13 +45,22 @@ export default {
     data() {
         return {
             goodsList: [],
-            currnetIndex: 0,
+            // currentIndex: 0,
             heightList: [],
             scrollY: 0
         }
     },
     created() {
         this.getGoodsData()
+    },
+    computed: {
+        currentIndex() {
+            for(let i =0; i<this.heightList.length-1; i++) {
+                if (this.scrollY >= this.heightList[i] && this.scrollY < this.heightList[i+1]) {
+                    return i
+                }
+            }
+        }
     },
     methods: {
         getGoodsData() {
@@ -67,20 +76,28 @@ export default {
         },
         // 选择商品
         chooseGoods(index,e) {
+            // pc端会派发两次点击事件
             if (!e._constructed) {
                 return
             }
-            this.currnetIndex = index
+            // this.currentIndex = index
+            let foodlist = this.$refs.foodlist
+            let el = foodlist[index]
+            // better-scroll内置滚动到某一个位置的事件
+            this.infoScroll.scrollToElement(el,200)          
+            
         },
         // 初始化滚动
         initScroll() {
             this.infoScroll = new BScroll(this.$refs.infoScroll,{
                 click: true,
+                // 设置该属性可以监听到dom滚动的位置
                 probeType: 3
             });
             this.meauScroll = new BScroll(this.$refs.meauScroll,{
                 click: true,
             })
+            // 该事件是better-scroll内置监听位置的事件
             this.infoScroll.on('scroll',(pos) => {
                 this.scrollY = Math.abs(Math.round(pos.y))
             })
@@ -95,7 +112,6 @@ export default {
                 height += item.clientHeight
                 this.heightList.push(height)
             }
-            console.log(this.heightList)
         },
     },
 }
